@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileCode, Database, Server, Copy, Check, TrendingUp, Lightbulb, ArrowRight, Github, ExternalLink } from 'lucide-react';
 
 const Proposals = () => {
