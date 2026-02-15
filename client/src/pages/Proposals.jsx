@@ -7,49 +7,40 @@ const Proposals = () => {
     const [repoConnected, setRepoConnected] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
-    // Mock data for generated proposals
-    const proposals = [
-        {
-            id: 'task-101',
-            law: '個人情報保護法改正',
-            title: 'プライバシーポリシー同意取得フローの改修',
-            description: '改正法第23条に基づき、ユーザー登録時の同意取得画面に「第三者提供のオプトアウト」に関する明示的なチェックボックスを追加する必要があります。',
-            category: 'compliance',
-            type: 'frontend',
-            priority: 'high',
-            files: ['client/src/pages/Register.jsx', 'client/src/components/ConsentForm.jsx']
-        },
-        {
-            id: 'biz-101',
-            law: '個人情報保護法改正',
-            title: 'データポータビリティ対応サービスの実装',
-            description: '【ビジネスチャンス】ユーザーが自身のデータをダウンロードできる機能を提供することで、信頼性向上と「データ開示請求」への自動対応が可能になります。競合他社に先駆けた差別化要因になります。',
-            category: 'business',
-            type: 'backend',
-            priority: 'medium',
-            files: ['server/api/userDataExport.js', 'client/src/pages/UserSettings.jsx']
-        },
-        {
-            id: 'task-102',
-            law: 'インボイス制度対応',
-            title: '請求書PDFへの登録番号印字',
-            description: '適格請求書発行事業者の登録番号（T+13桁）をPDF出力ロジックに追加してください。義務化対応です。',
-            category: 'compliance',
-            type: 'backend',
-            priority: 'high',
-            files: ['server/services/pdfGenerator.js']
-        },
-        {
-            id: 'biz-102',
-            law: '改正電子帳簿保存法',
-            title: '領収書AI読み取り機能の追加',
-            description: '【ビジネスチャンス】電子保存義務化に伴い、経費精算時の領収書アップロード＆OCR読み取り機能の需要が急増しています。ユーザーの作業負担を減らす新プランとしての提供を推奨します。',
-            category: 'business',
-            type: 'fullstack',
-            priority: 'high',
-            files: ['server/services/ocrService.js', 'client/src/components/ReceiptUploader.jsx']
-        }
-    ];
+    const [proposals, setProposals] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProposals = async () => {
+            try {
+                const res = await fetch('/api/proposals');
+                if (res.ok) {
+                    const data = await res.json();
+                    setProposals(data);
+                } else {
+                    // Fallback if API fails
+                    console.warn('Failed to fetch proposals, using mock.');
+                    setProposals([
+                        {
+                            id: 'mock-1',
+                            law: 'データ取得エラー (フォールバック)',
+                            title: 'API接続を確認してください',
+                            description: 'サーバーからの提案データの取得に失敗しました。',
+                            category: 'compliance',
+                            type: 'frontend',
+                            files: []
+                        }
+                    ]);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProposals();
+    }, []);
 
     const handleAction = (id) => {
         setCopiedId(id);
@@ -172,10 +163,10 @@ const Proposals = () => {
                             <button
                                 onClick={() => handleAction(task.id)}
                                 className={`w-full px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-all ${copiedId === task.id
-                                        ? 'bg-green-100 text-green-700'
-                                        : task.category === 'business'
-                                            ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-200'
-                                            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                                    ? 'bg-green-100 text-green-700'
+                                    : task.category === 'business'
+                                        ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-200'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
                                     }`}
                             >
                                 {copiedId === task.id ? <Check size={18} /> : (repoConnected ? <Github size={18} /> : (task.category === 'business' ? <Lightbulb size={18} /> : <Copy size={18} />))}

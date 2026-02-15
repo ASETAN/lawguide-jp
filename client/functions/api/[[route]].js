@@ -50,6 +50,141 @@ app.get('/laws/:id', async (c) => {
     });
 });
 
+// GET /api/proposals (Dynamic generation based on D1 data)
+app.get('/proposals', async (c) => {
+    try {
+        // Fetch recent laws from D1
+        const { results: laws } = await c.env.DB.prepare(
+            'SELECT * FROM releases ORDER BY enforcement_date DESC LIMIT 10'
+        ).all();
+
+        const proposals = [];
+        let idCounter = 1;
+
+        // Keyword-based rule engine (Simulation of AI analysis)
+        const rules = [
+            {
+                keywords: ['個人情報', 'プライバシー', 'データ'],
+                generate: (law) => ([
+                    {
+                        type: 'compliance',
+                        title: 'プライバシーポリシーの改定',
+                        description: `「${law.title}」の施行に伴い、第三者提供の記録義務等が変更される可能性があります。利用規約と同意フローの見直しを推奨します。`,
+                        tech: 'frontend',
+                        priority: 'high',
+                        files: ['client/src/pages/Register.jsx', 'client/src/components/ConsentForm.jsx']
+                    },
+                    {
+                        type: 'business',
+                        title: 'データポータビリティ機能の提供',
+                        description: `【ビジネスチャンス】「${law.title}」によりユーザーのデータ権利意識が高まっています。データエクスポート機能を新プランとして提供することで、競合他社と差別化できます。`,
+                        tech: 'backend',
+                        priority: 'medium',
+                        files: ['server/api/export.js']
+                    }
+                ])
+            },
+            {
+                keywords: ['デジタル', '情報通信', '電波', 'ネット'],
+                generate: (law) => ([
+                    {
+                        type: 'business',
+                        title: 'DX対応コンサルティングプラン',
+                        description: `【ビジネスチャンス】「${law.title}」は企業のデジタル化を後押しする内容です。既存顧客向けに、この法改正に対応したIT導入補助金の活用サポートプランを提案できます。`,
+                        tech: 'fullstack',
+                        priority: 'high',
+                        files: ['client/src/pages/Pricing.jsx']
+                    }
+                ])
+            },
+            {
+                keywords: ['環境', 'エネルギー', '炭素'],
+                generate: (law) => ([
+                    {
+                        type: 'business',
+                        title: 'グリーンテック・ブランディング',
+                        description: `【ビジネスチャンス】「${law.title}」への早期対応をプレスリリースすることで、環境配慮型企業としてのブランド価値を向上させることができます。`,
+                        tech: 'frontend',
+                        priority: 'medium',
+                        files: ['client/src/pages/About.jsx']
+                    }
+                ])
+            },
+            {
+                keywords: ['金融', '資金', '決済', '銀行'],
+                generate: (law) => ([
+                    {
+                        type: 'compliance',
+                        title: '決済システム本人確認(eKYC)の強化',
+                        description: `「${law.title}」により、マネーロンダリング対策の要件が強化される可能性があります。本人確認フローの再点検が必要です。`,
+                        tech: 'backend',
+                        priority: 'high',
+                        files: ['server/services/kycHooks.js']
+                    }
+                ])
+            },
+            {
+                // Default rule for unmatched laws
+                keywords: [],
+                generate: (law) => ([
+                    {
+                        type: 'compliance',
+                        title: `${law.title} 影響調査`,
+                        description: `新規公布された「${law.title}」について、社内業務への影響を一次調査する必要があります。`,
+                        tech: 'frontend',
+                        priority: 'low',
+                        files: ['docs/compliance_check.md']
+                    }
+                ])
+            }
+        ];
+
+        for (const law of laws) {
+            let matched = false;
+            for (const rule of rules) {
+                if (rule.keywords.length > 0 && rule.keywords.some(k => law.title.includes(k) || law.summary.includes(k))) {
+                    const generatedItems = rule.generate(law);
+                    generatedItems.forEach(item => {
+                        proposals.push({
+                            id: `prop-${idCounter++}`,
+                            law: law.title,
+                            title: item.title,
+                            description: item.description,
+                            category: item.type, // 'business' or 'compliance'
+                            type: item.tech,     // 'frontend', 'backend', 'fullstack'
+                            priority: item.priority,
+                            files: item.files
+                        });
+                    });
+                    matched = true;
+                }
+            }
+            // If no specific keywords matched, use default ONLY if we don't have enough proposals yet
+            if (!matched && proposals.length < 5) {
+                const defaultRule = rules[rules.length - 1];
+                const items = defaultRule.generate(law);
+                items.forEach(item => {
+                    proposals.push({
+                        id: `prop-${idCounter++}`,
+                        law: law.title,
+                        title: item.title,
+                        description: item.description,
+                        category: item.type,
+                        type: item.tech,
+                        priority: item.priority,
+                        files: item.files
+                    });
+                });
+            }
+        }
+
+        return json(c, proposals);
+    } catch (err) {
+        console.error(err);
+        return c.json({ error: err.message }, 500);
+    }
+});
+
 // POST /api/impact (Save Analysis)
 app.post('/impact', async (c) => {
     const body = await c.req.json();
