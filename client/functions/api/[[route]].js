@@ -54,9 +54,12 @@ app.get('/laws/:id', async (c) => {
 app.get('/proposals', async (c) => {
     try {
         // Fetch recent laws from D1
-        const { results: laws } = await c.env.DB.prepare(
+        // Fetch recent laws from D1
+        const { results } = await c.env.DB.prepare(
             'SELECT * FROM releases ORDER BY enforcement_date DESC LIMIT 10'
         ).all();
+
+        const laws = results || [];
 
         const proposals = [];
         let idCounter = 1;

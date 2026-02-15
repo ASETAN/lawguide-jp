@@ -12,28 +12,33 @@ const Proposals = () => {
 
     useEffect(() => {
         const fetchProposals = async () => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
             try {
-                const res = await fetch('/api/proposals');
+                const res = await fetch('/api/proposals', { signal: controller.signal });
+                clearTimeout(timeoutId);
+
                 if (res.ok) {
                     const data = await res.json();
                     setProposals(data);
                 } else {
-                    // Fallback if API fails
-                    console.warn('Failed to fetch proposals, using mock.');
-                    setProposals([
-                        {
-                            id: 'mock-1',
-                            law: 'データ取得エラー (フォールバック)',
-                            title: 'API接続を確認してください',
-                            description: 'サーバーからの提案データの取得に失敗しました。',
-                            category: 'compliance',
-                            type: 'frontend',
-                            files: []
-                        }
-                    ]);
+                    throw new Error('API Error');
                 }
             } catch (err) {
-                console.error(err);
+                console.warn('Failed to fetch proposals, using mock:', err);
+                setProposals([
+                    {
+                        id: 'mock-error',
+                        law: 'データ取得遅延',
+                        title: '接続タイムアウトまたはエラー',
+                        description: `サーバー応答が確認できませんでした (${err.message})。しばらく待ってから再読み込みしてください。`,
+                        category: 'compliance',
+                        type: 'frontend',
+                        priority: 'high',
+                        files: []
+                    }
+                ]);
             } finally {
                 setLoading(false);
             }
