@@ -62,26 +62,57 @@ app.post('/impact', async (c) => {
     return json(c, { success: true, id });
 });
 
-// POST /api/crawl (Manual Trigger) - Simple implementation
+import { XMLParser } from 'fast-xml-parser';
+
+// ... imports ...
+
+// POST /api/crawl (Trigger e-Gov Fetch)
 app.post('/crawl', async (c) => {
-    // In a real D1 app, we would fetch data from e-Gov API here and insert into D1
-    // For demonstration "Live" feel, we will verify D1 connection and insert a sample if empty
+    try {
+        console.log('Fetching from e-Gov API...');
+        const res = await fetch('https://laws.e-gov.go.jp/api/1/lawlists/1');
+        const xmlText = await res.text();
 
-    const count = await c.env.DB.prepare('SELECT count(*) as c FROM releases').first();
+        const parser = new XMLParser();
+        const jsonObj = parser.parse(xmlText);
 
-    if (count.c === 0) {
-        // Seed initial data if empty
-        await c.env.DB.prepare(`
-        INSERT INTO releases (id, title, enforcement_date, summary, url) VALUES 
-        ('123456', '個人情報保護法改正 (令和7年)', '2025-04-01', 'デジタル社会の形成を図るための関係法律の整備に関する法律により、個人情報保護法が改正されます。第三者提供の記録義務が厳格化されます。', '#'),
-        ('789012', '電子帳簿保存法 (スキャナ保存要件緩和)', '2025-01-01', 'スキャナ保存制度の要件が大幅に緩和され、タイムスタンプ付与期間が延長されます。', '#'),
-        ('345678', '労働基準法 (デジタル給与払い)', '2025-04-01', '賃金のデジタル払い（資金移動業者口座への振込）が解禁されます。同意取得フローの実装が必要です。', '#'),
-        ('901234', '特定商取引法 (定期購入規制)', '2025-06-01', '詐欺的な定期購入商法への規制が強化されます。最終確認画面での表示義務事項が追加されます。', '#')
-      `).run();
-        return json(c, { message: 'Seeded initial data' });
+        const laws = jsonObj.DataRoot.ApplData.LawNameListInfo;
+        // Take top 20 for demo (API returns thousands)
+        const recentLaws = Array.isArray(laws) ? laws.slice(-20).reverse() : [laws];
+
+        const stmt = c.env.DB.prepare(`
+            INSERT OR IGNORE INTO releases (id, title, enforcement_date, summary, url) 
+            VALUES (?, ?, ?, ?, ?)
+        `);
+
+        let count = 0;
+        const batch = [];
+
+        for (const law of recentLaws) {
+            const dateStr = law.PromulgationDate.toString();
+            const formattedDate = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+
+            batch.push(stmt.bind(
+                law.LawId,
+                law.LawName,
+                formattedDate, // Using promulgation date as proxy
+                `公布日: ${formattedDate} (法令番号: ${law.LawNo})`,
+                `https://elaws.e-gov.go.jp/document?lawid=${law.LawId}`
+            ));
+            count++;
+        }
+
+        await c.env.DB.batch(batch);
+
+        return json(c, {
+            message: `Successfully crawled ${count} laws from e-Gov`,
+            fetched: count
+        });
+
+    } catch (err) {
+        console.error(err);
+        return c.json({ error: err.message }, 500);
     }
-
-    return json(c, { message: 'Crawl triggered (stub)', current_count: count.c });
 });
 
 export const onRequest = handle(app);
