@@ -157,7 +157,7 @@ const Dashboard = () => {
                                                 原文 <ExternalLink size={12} className="ml-1" />
                                             </a>
                                             <Link to={`/laws/${item.law_id}`} className="ml-auto flex items-center gap-1 text-gray-500 group-hover:text-blue-600 transition-colors">
-                                                詳細分析へ <ArrowRight size={14} />
+                                                詳細を見る <ArrowRight size={14} />
                                             </Link>                                    </div>
                                     </div>
                                 );

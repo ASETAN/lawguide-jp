@@ -6,9 +6,7 @@ const Sidebar = () => {
     const navItems = [
         { name: 'ダッシュボード', path: '/', icon: LayoutDashboard },
         { name: '法令一覧', path: '/laws', icon: BookOpen },
-        { name: '承認待ち', path: '/approvals', icon: CheckCircle },
-        { name: '影響分析', path: '/impact', icon: AlertTriangle },
-        { name: '開発提案', path: '/proposals', icon: FileText },
+        { name: 'AI提案 & 対応タスク', path: '/proposals', icon: FileText },
         { name: '監査ログ', path: '/audit', icon: ShieldCheck },
         { name: '設定', path: '/settings', icon: Settings },
     ];

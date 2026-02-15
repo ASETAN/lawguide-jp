@@ -63,8 +63,8 @@ const LawViewer = () => {
                         <p className="text-xs text-gray-400 mt-2 text-right">※緑色は追加箇所、赤色は削除箇所を示します。</p>
                     </div>
                     <div className="flex justify-end">
-                        <Link to={`/impact?law_id=${law.id}`} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-bold shadow-sm">
-                            影響分析を開始する <ArrowRight size={18} />
+                        <Link to="/proposals" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-bold shadow-sm">
+                            関連するAI提案を見る <ArrowRight size={18} />
                         </Link>
                     </div>
 

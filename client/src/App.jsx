@@ -23,8 +23,6 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="laws/:id" element={<LawViewer />} />
           <Route path="laws" element={<Placeholder title="法令一覧" />} />
-          <Route path="impact" element={<ImpactWorkflow />} />
-          <Route path="approvals" element={<ApprovalList />} />
           <Route path="proposals" element={<Proposals />} />
           <Route path="audit" element={<Placeholder title="監査ログ" />} />
           <Route path="settings" element={<Settings />} />

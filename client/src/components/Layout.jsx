@@ -10,8 +10,7 @@ const Layout = () => {
     const getTitle = (path) => {
         if (path === '/') return 'ダッシュボード';
         if (path.startsWith('/laws')) return '法令一覧';
-        if (path.startsWith('/impact')) return '影響分析';
-        if (path.startsWith('/proposals')) return '開発提案';
+        if (path.startsWith('/proposals')) return 'AI提案 & 対応タスク';
         if (path.startsWith('/audit')) return '監査ログ';
         if (path.startsWith('/settings')) return '設定';
         return 'LawGuideJP';
