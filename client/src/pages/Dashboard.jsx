@@ -38,6 +38,18 @@ const Dashboard = () => {
         return () => window.removeEventListener('settings-updated', handleSettingsUpdate);
     }, []);
 
+    const loadDemoData = async () => {
+        if (!confirm('デモデータを初期化（データベースに書き込み）しますか？')) return;
+        try {
+            const res = await fetch('/api/crawl', { method: 'POST' });
+            const data = await res.json();
+            alert(data.message || 'データロード完了');
+            window.location.reload();
+        } catch (err) {
+            alert('ロード失敗: ' + err.message);
+        }
+    };
+
     // Mock scoring logic based on industry
     const calculateImpactScore = (law) => {
         let score = 50; // Base score
@@ -77,6 +89,12 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6">
+            <div className="flex justify-end">
+                <button onClick={loadDemoData} className="text-xs text-gray-400 hover:text-blue-600 underline">
+                    デモデータの初期化 (D1 Seed)
+                </button>
+            </div>
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">

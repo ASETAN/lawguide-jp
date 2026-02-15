@@ -1,0 +1,7 @@
+name = "lawguide-jp"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lawguide-db"
+database_id = "eac9131d-3626-4180-987c-fea119e1e86b"
