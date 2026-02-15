@@ -11,6 +11,7 @@ const Proposals = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        console.log('Proposals: Mount & Start Fetch');
         const fetchProposals = async () => {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
@@ -21,12 +22,13 @@ const Proposals = () => {
 
                 if (res.ok) {
                     const data = await res.json();
+                    console.log('Proposals: Data received', data);
                     setProposals(data);
                 } else {
                     throw new Error('API Error');
                 }
             } catch (err) {
-                console.warn('Failed to fetch proposals, using mock:', err);
+                console.warn('Proposals: Fetch failed', err);
                 setProposals([
                     {
                         id: 'mock-error',
@@ -48,6 +50,7 @@ const Proposals = () => {
     }, []);
 
     const handleAction = (id) => {
+        console.log('Action clicked:', id);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
     };
